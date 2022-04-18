@@ -9,15 +9,18 @@
  * 
  */
 
+#if !defined(BABY_CRAB_CONE_PUZZLE_HPP)
+#define BABY_CRAB_CONE_PUZZLE_HPP
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #define NO_MOVE 0x00
 
-#define MAMA  0x03   // 0b00000011
-#define BABY  0x0C   // 0b00001100
-#define CRAB  0x30   // 0b00110000
-#define CONE  0xC0   // 0b11000000
+#define MAMA  0x03   // 0b00000011      3
+#define BABY  0x0C   // 0b00001100      12
+#define CRAB  0x30   // 0b00110000      48
+#define CONE  0xC0   // 0b11000000      192
 
 #define LEFT  0x01   // 0b00000001 
 #define RIGHT 0x02   // 0b00000010 
@@ -56,7 +59,7 @@ typedef struct{
     int moves[MAX_TRIES+1];
 }PuzzleGame;
 
-void print_code_status(int n)
+void print_code_state(int n)
 {
     printf("\t");
     for(int i=0; i<8; ++i)
@@ -117,6 +120,7 @@ int side_mom( PuzzleGame theGame )
     return theGame.current_state & MAMA_LEFT ?  LEFT : RIGHT;
 }
 
+
 int offset_by_actor(int actor)
 {
     int offset = 0;
@@ -152,10 +156,13 @@ int on_same_side_whitout_mom( PuzzleGame theGame, int actor1, int actor2)
     return side_actor1 == side_actor2 && side_mama != side_actor1;
 }
 
+
 int on_same_side_mom( PuzzleGame theGame, int actor)
 {
     return side_mom(theGame) == side_actor(theGame, actor);
 }
+
+
 
 int update_status( PuzzleGame *theGame, int actor )
 {
@@ -164,9 +171,8 @@ int update_status( PuzzleGame *theGame, int actor )
         return 0;
     }
 
-    // move MAMA and actor move to the other bank
+    // move MAMA and actor to the another bank
     theGame->current_state ^= MAMA;
-
     if( actor != MAMA )
         theGame->current_state ^= actor;
     
@@ -209,11 +215,26 @@ void display_status(PuzzleGame theGame )
     sprintf(buffer,side_actor(theGame, CONE) & LEFT ? pattern_l : pattern_r  ,"CONE");
     printf("%s\n",buffer);
     printf("\t------------------------ \n");
+
 }
 
+void display_status( int code )
+{
+    int actor_side[8] = {MAMA_LEFT, MAMA_RIGHT, BABY_LEFT, BABY_RIGHT, CRAB_LEFT, CRAB_RIGHT, CONE_LEFT, CONE_RIGHT };
 
+    char letters[5]={'M', 'B', 'C', 'H', '\0' };
+    char str_code[10]={'_', '_', '_', '_', '~', '_', '_', '_', '_', '\0' };
+    
+    for(int ii=0; ii<8; ii+=2)
+        str_code[ii/2] = code & actor_side[ii] ? letters[ ii/2 ] : '_';
 
-PuzzleGame create_game(void)
+    for(int ii=1; ii<8; ii+=2)
+        str_code[ii/2 + 5] = code & actor_side[ii] ? letters[ ii/2 ] : '_';
+
+    printf("%s ", str_code);
+}
+
+PuzzleGame create_game()
 {
     PuzzleGame theGame;
 
@@ -222,7 +243,7 @@ PuzzleGame create_game(void)
     theGame.code_status = OK_STATUS; 
 
     //intro_puzzle(); 
-    //display_status(theGame);
+    display_status(theGame);
 
     return theGame;
 }
@@ -242,25 +263,4 @@ void display_score( PuzzleGame theGame )
     printf(" ------------------------------------------------------\n\n\n");
 }
 
-
-/*
-int main(void)
-{
-    int move;
-    PuzzleGame Puzzle = create_game();
-
-    while( 1 )
-    {
-        input_move( &move );
-        update_status( &Puzzle, move );
-        intro_puzzle(); 
-        display_status( Puzzle );
-
-        if( is_game_over(Puzzle) ) 
-            break;
-    }
-
-    display_score( Puzzle );
-    
-}
-*/
+#endif // BABY_CRAB_CONE_PUZZLE_HPP
